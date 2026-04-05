@@ -1,17 +1,28 @@
-# flutter_application_1
+<# Chess Flutter
 
-A new Flutter project.
+Dự án ứng dụng cờ vua được phát triển bằng Flutter.
 
-## Getting Started
+## Tính năng
 
-This project is a starting point for a Flutter application.
+- Chơi cờ với máy
+- Chơi trực tuyến (đăng nhập yêu cầu)
+- Chơi với bạn bè trên cùng thiết bị
+- Giải câu đố cờ vua
+- Chế độ sáng/tối
 
-A few resources to get you started if this is your first Flutter project:
+## Bắt đầu
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Đây là dự án Flutter. Để chạy:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Cài đặt Flutter: https://flutter.dev/docs/get-started/install
+2. Clone repo: `git clone https://github.com/manhmahou/Chess_flutter.git`
+3. Chạy `flutter pub get`
+4. Chạy `flutter run`
+
+## Tài nguyên học Flutter
+
+- [Học Flutter](https://docs.flutter.dev/get-started/learn-flutter)
+- [Viết app Flutter đầu tiên](https://docs.flutter.dev/get-started/codelab)
+- [Tài nguyên học Flutter](https://docs.flutter.dev/reference/learning-resources)
+
+Để được giúp đỡ, xem [tài liệu online](https://docs.flutter.dev/).
