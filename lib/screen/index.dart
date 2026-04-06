@@ -321,7 +321,7 @@ class _HomeContentState extends State<HomeContent> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => GameScreen(mode: 'computer', side: result),
+          builder: (context) => GameScreen(mode: 'computer'),
         ),
       );
     }
