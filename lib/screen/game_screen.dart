@@ -9,21 +9,37 @@ class GameScreen extends StatelessWidget {
   
   const GameScreen({super.key, required this.mode});
 
+  // HÀM MỚI: Trả về tên màn hình dựa theo chế độ chơi
+  String _getScreenTitle() {
+    switch (mode) {
+      case 'computer':
+        return 'Chơi với Máy tính';
+      case 'puzzle':
+        return 'Giải câu đố (Bí 2 nước)';
+      case 'online':
+        return 'Đấu trực tuyến';
+      case 'friend':
+      default:
+        return 'Chơi với bạn (2 Người)';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // BỌC MÀN HÌNH BẰNG PROVIDER ĐỂ GỌI ĐẾN FILE LOGIC
     return ChangeNotifierProvider(
-      create: (_) => GameViewModel(mode:mode),
+      create: (_) => GameViewModel(mode: mode),
       child: Scaffold(
         backgroundColor: const Color(0xFF1A1A1A), 
         appBar: AppBar(
-          title: const Text('Cờ Vua - Chơi 2 người'),
+          // ÁP DỤNG HÀM ĐỔI TÊN VÀO ĐÂY
+          title: Text(_getScreenTitle()),
           backgroundColor: const Color(0xFF2C3E50),
           actions: [
             Consumer<GameViewModel>(
               builder: (context, viewModel, child) => IconButton(
                 icon: const Icon(Icons.refresh), 
                 onPressed: () => viewModel.resetGame(),
+                tooltip: 'Chơi lại',
               ),
             ),
           ],
@@ -58,28 +74,20 @@ class GameScreen extends StatelessWidget {
 
   Widget _buildPlayerHeader(PieceColor color, GameViewModel viewModel) {
     bool isCurrentTurn = viewModel.currentTurn == color && viewModel.winner == null;
-    // Đổi tên dựa theo chế độ
+    
+    // Tên người chơi cũng đã được đổi linh hoạt theo chế độ
     String playerName;
     if (viewModel.mode == 'friend') {
-      playerName = color == PieceColor.white ? 'Người 1 (Trắng)' : 'Người 2 (Đen)';
+      playerName = color == PieceColor.white ? 'Người chơi 1 (Trắng)' : 'Người chơi 2 (Đen)';
     } else {
       playerName = color == PieceColor.white ? 'Bạn (Trắng)' : 'Máy tính (Đen)';
     }
     
-    // Hiện chữ máy đang nghĩ
-    bool showThinking = isCurrentTurn && viewModel.isComputerThinking && color == PieceColor.black;
-
-
-            // Thay phần Spacer() cũ bằng đoạn này:
-              const Spacer();
-              if (showThinking)
-                {const Text('Máy đang nghĩ...', style: TextStyle(color: Color(0xFFE74C3C), fontSize: 13, fontStyle: FontStyle.italic));}
-              else if (isCurrentTurn)
-                {const Text('Đến lượt', style: TextStyle(color: Color(0xFF3498DB), fontSize: 13, fontStyle: FontStyle.italic));}
-    
     List<Piece> capturedPieces = (color == PieceColor.white) 
         ? viewModel.capturedWhitePieces 
         : viewModel.capturedBlackPieces;
+
+    bool showThinking = isCurrentTurn && viewModel.isComputerThinking && color == PieceColor.black;
 
     return Container(
       width: double.infinity,
@@ -115,8 +123,10 @@ class GameScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              if (isCurrentTurn)
-                const Text('Đang nghĩ...', style: TextStyle(color: Color(0xFF3498DB), fontSize: 12, fontStyle: FontStyle.italic)),
+              if (showThinking)
+                const Text('Máy đang nghĩ...', style: TextStyle(color: Color(0xFFE74C3C), fontSize: 13, fontStyle: FontStyle.italic))
+              else if (isCurrentTurn)
+                const Text('Đến lượt', style: TextStyle(color: Color(0xFF3498DB), fontSize: 13, fontStyle: FontStyle.italic)),
             ],
           ),
           if (capturedPieces.isNotEmpty) ...[
@@ -156,7 +166,6 @@ class GameScreen extends StatelessWidget {
             bool isWhiteSquare = (row + col) % 2 == 0;
             bool isSelected = viewModel.selectedPosition == Position(row, col);
             
-            // LẤY QUÂN CỜ TỪ VIEWMODEL CHỨ KHÔNG PHẢI TỪ MA TRẬN STRING CŨ
             Piece? piece = viewModel.board[row][col];
 
             return GestureDetector(
@@ -229,7 +238,7 @@ class GameScreen extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () => viewModel.resetGame(),
             icon: const Icon(Icons.refresh),
-            label: const Text('CHƠI VÁN MỚI'),
+            label: const Text('CHƠI LẠI'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
               foregroundColor: Colors.black,
