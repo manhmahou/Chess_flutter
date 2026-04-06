@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// Đảm bảo đường dẫn import này khớp với cấu trúc thư mục của bạn
 import '../viewmodels/game_viewmodel.dart';
 import '../model/game_position.dart';
 import '../model/game_pieces_color.dart';
@@ -14,7 +13,7 @@ class GameScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // BỌC MÀN HÌNH BẰNG PROVIDER ĐỂ GỌI ĐẾN FILE LOGIC
     return ChangeNotifierProvider(
-      create: (_) => GameViewModel(),
+      create: (_) => GameViewModel(mode:mode),
       child: Scaffold(
         backgroundColor: const Color(0xFF1A1A1A), 
         appBar: AppBar(
@@ -59,7 +58,24 @@ class GameScreen extends StatelessWidget {
 
   Widget _buildPlayerHeader(PieceColor color, GameViewModel viewModel) {
     bool isCurrentTurn = viewModel.currentTurn == color && viewModel.winner == null;
-    String playerName = color == PieceColor.white ? 'Trắng' : 'Đen';
+    // Đổi tên dựa theo chế độ
+    String playerName;
+    if (viewModel.mode == 'friend') {
+      playerName = color == PieceColor.white ? 'Người 1 (Trắng)' : 'Người 2 (Đen)';
+    } else {
+      playerName = color == PieceColor.white ? 'Bạn (Trắng)' : 'Máy tính (Đen)';
+    }
+    
+    // Hiện chữ máy đang nghĩ
+    bool showThinking = isCurrentTurn && viewModel.isComputerThinking && color == PieceColor.black;
+
+
+            // Thay phần Spacer() cũ bằng đoạn này:
+              const Spacer();
+              if (showThinking)
+                {const Text('Máy đang nghĩ...', style: TextStyle(color: Color(0xFFE74C3C), fontSize: 13, fontStyle: FontStyle.italic));}
+              else if (isCurrentTurn)
+                {const Text('Đến lượt', style: TextStyle(color: Color(0xFF3498DB), fontSize: 13, fontStyle: FontStyle.italic));}
     
     List<Piece> capturedPieces = (color == PieceColor.white) 
         ? viewModel.capturedWhitePieces 
