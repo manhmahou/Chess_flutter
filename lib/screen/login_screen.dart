@@ -11,7 +11,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
   bool _showPassword = false;
+  bool _isLoading = false; // Biến mới để quản lý trạng thái đang tải
 
   @override
   void dispose() {
@@ -20,7 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  // Chuyển hàm thành bất đồng bộ (async) để giả lập thời gian gọi API
+  Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -31,12 +34,38 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đăng nhập với $username')),
-    );
+    // 1. Bật trạng thái Loading (hiện vòng xoay)
+    setState(() {
+      _isLoading = true;
+    });
 
-    // Giả sử đăng nhập thành công, quay lại màn hình chính
-    Navigator.pop(context, true);
+    // 2. Giả lập quá trình chờ phản hồi từ Server (1.5 giây)
+    await Future.delayed(const Duration(milliseconds: 1500));
+
+    // Đảm bảo widget chưa bị tắt đi trong lúc chờ
+    if (!mounted) return;
+
+    // 3. Tắt trạng thái Loading
+    setState(() {
+      _isLoading = false;
+    });
+
+    // 4. Kiểm tra tài khoản (Test với tài khoản cứng)
+    if (username == 'admin' && password == '123456') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đăng nhập thành công! Chào mừng $username.')),
+      );
+      // Trả về true để HomePage nhận biết đăng nhập thành công
+      Navigator.pop(context, true);
+    } else {
+      // Thông báo sai thông tin
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tên đăng nhập hoặc mật khẩu không đúng! (Thử: admin / 123456)'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   }
 
   void _register() {
@@ -68,6 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               Container(
                 width: double.infinity,
+                // Thêm constraint để form không bị giãn to quá đà khi chạy trên Web
+                constraints: const BoxConstraints(maxWidth: 500),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: const Color(0xFF192B44),
@@ -118,14 +149,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
+                    
+                    // --- CẬP NHẬT NÚT ĐĂNG NHẬP ---
                     ElevatedButton(
-                      onPressed: _login,
+                      // Nếu đang Loading thì vô hiệu hóa nút bấm (chặn spam)
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF3B7DD9),
+                        disabledBackgroundColor: const Color(0xFF3B7DD9).withAlpha(150),
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Đăng nhập', style: TextStyle(fontSize: 16)),
+                      // Chuyển đổi giữa Chữ và Vòng quay Loading
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text('Đăng nhập', style: TextStyle(fontSize: 16, color: Colors.white)),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -151,6 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Giữ nguyên hàm _buildTextField của bạn
   Widget _buildTextField({
     required TextEditingController controller,
     required String labelText,
