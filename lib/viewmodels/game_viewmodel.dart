@@ -15,9 +15,10 @@ class GameViewModel extends ChangeNotifier {
 
   // Thêm biến quản lý chế độ chơi và trạng thái máy đang nghĩ
   final String mode; 
+  final PieceColor playerColor;
   bool isComputerThinking = false;
 
-  GameViewModel({this.mode = 'friend'}) {
+  GameViewModel({this.mode = 'friend',this.playerColor = PieceColor.white}) {
     resetGame();
   }
 
@@ -35,7 +36,11 @@ class GameViewModel extends ChangeNotifier {
     } else {
       _initializeBoard();
     }
-    notifyListeners();
+    if (mode == 'computer' && playerColor == PieceColor.black) {
+      Future.delayed(const Duration(milliseconds: 500), () => _makeComputerMove());
+    } else {
+      notifyListeners();
+    }
   }
 
   void _initializeBoard() {
@@ -53,8 +58,7 @@ class GameViewModel extends ChangeNotifier {
     }
   }
 
-  // --- THẾ CỜ: BÍ TRONG 2 NƯỚC ---
-  // Lời giải: 1. Xe ăn Tốt (h7) chiếu Vua -> Vua bắt buộc ăn Xe. 2. Hậu bay vào g7 chiếu bí.
+  
   void _initializePuzzleBoard() {
     board = List.generate(8, (_) => List.filled(8, null));
     // Quân Đen
@@ -72,17 +76,13 @@ class GameViewModel extends ChangeNotifier {
   void onSquareTapped(int row, int col) {
     // Khóa bàn cờ nếu đã có người thắng HOẶC máy đang suy nghĩ
     if (winner != null || isComputerThinking) return;
-
-    // Trong chế độ chơi với máy hoặc giải đố, người chơi chỉ được cầm quân Trắng
-    if ((mode == 'computer' || mode == 'puzzle') && currentTurn == PieceColor.black) {
-      return; 
-    }
+    //Chặn các thao tác của người chơi nếu không phải lượt của họ (Đúng với chế độ chơi)
+    if (mode == 'computer' && currentTurn != playerColor) return;
+    if (mode == 'puzzle' && currentTurn == PieceColor.black) return;
+    
 
     var tappedPiece = board[row][col];
-
-    // [FIX LỖI 4]: KHI CHƯA CHỌN QUÂN NÀO
     if (selectedPosition == null) {
-      // Chỉ cho phép chọn quân CỦA MÌNH (Đúng với lượt hiện tại)
       if (tappedPiece != null && tappedPiece.color == currentTurn) {
         selectedPosition = Position(row, col);
         notifyListeners();
@@ -208,7 +208,11 @@ class GameViewModel extends ChangeNotifier {
       currentTurn = currentTurn == PieceColor.white ? PieceColor.black : PieceColor.white;
       
       // KÍCH HOẠT AI SAU KHI NGƯỜI ĐI XONG
-      if ((mode == 'computer' || mode == 'puzzle') && currentTurn == PieceColor.black) {
+      if ((mode == 'computer' || mode == 'puzzle') && currentTurn == PieceColor.black) 
+      {
+        _makeComputerMove();
+      }   else if (mode == 'puzzle' && currentTurn == PieceColor.black) 
+      {
         _makeComputerMove();
       }
     }
@@ -222,13 +226,13 @@ class GameViewModel extends ChangeNotifier {
 
     // Giả lập thời gian máy suy nghĩ cho giống thật (0.8 giây)
     await Future.delayed(const Duration(milliseconds: 800));
-
+    PieceColor aiColor = playerColor == PieceColor.white ? PieceColor.black : PieceColor.white;
     List<Map<String, dynamic>> possibleMoves = [];
 
-    // Quét toàn bộ bàn cờ tìm quân Đen
+    // Quét toàn bộ bàn cờ tìm quân của AI
     for (int r = 0; r < 8; r++) {
       for (int c = 0; c < 8; c++) {
-        if (board[r][c] != null && board[r][c]!.color == PieceColor.black) {
+        if (board[r][c] != null && board[r][c]!.color == aiColor) {
           Position from = Position(r, c);
           
           // Thử đi tới tất cả các ô trên bàn cờ

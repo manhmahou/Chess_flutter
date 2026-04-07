@@ -3,6 +3,8 @@ import 'dart:async';
 import 'choose_side_dialog.dart';
 import 'game_screen.dart';
 import 'login_screen.dart';
+import '../model/game_pieces_color.dart'; 
+// (Lưu ý: Nếu thư mục của bạn tên là 'model' không có chữ 's', hãy sửa lại cho khớp nhé)
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -100,8 +102,13 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ChangeNameScreen()),
-                  );
+                    MaterialPageRoute(
+                      builder: (context) => const GameScreen(
+                        mode: 'computer',
+                        playerColor: PieceColor.black, // Truyền màu người chơi đã chọn ở đây!
+                      ),
+                    ),
+                  );  
                 },
               ),
               ListTile(

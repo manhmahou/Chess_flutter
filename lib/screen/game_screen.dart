@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/game_viewmodel.dart';
@@ -6,16 +7,15 @@ import '../model/game_pieces_color.dart';
 
 class GameScreen extends StatelessWidget {
   final String mode;
-  
-  const GameScreen({super.key, required this.mode});
+  final PieceColor playerColor;
+  const GameScreen({super.key, required this.mode, this.playerColor = PieceColor.white,});
 
-  // HÀM MỚI: Trả về tên màn hình dựa theo chế độ chơi
   String _getScreenTitle() {
     switch (mode) {
       case 'computer':
         return 'Chơi với Máy tính';
       case 'puzzle':
-        return 'Giải câu đố (Bí 2 nước)';
+        return 'Giải câu đố (Bí 2 nước)'; 
       case 'online':
         return 'Đấu trực tuyến';
       case 'friend':
@@ -24,14 +24,26 @@ class GameScreen extends StatelessWidget {
     }
   }
 
+  // --- HÀM MỚI: Ánh xạ loại quân cờ thành Icon (Unicode) ---
+  String _getPieceIcon(Piece piece) {
+    // Sử dụng bộ icon đặc (solid) để dễ dàng thay đổi màu sắc Trắng/Đen
+    switch (piece.type) {
+      case PieceType.king: return '♚';
+      case PieceType.queen: return '♛';
+      case PieceType.rook: return '♜';
+      case PieceType.bishop: return '♝';
+      case PieceType.knight: return '♞';
+      case PieceType.pawn: return '♟';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => GameViewModel(mode: mode),
+      create: (_) => GameViewModel(mode: mode, playerColor: playerColor),
       child: Scaffold(
         backgroundColor: const Color(0xFF1A1A1A), 
         appBar: AppBar(
-          // ÁP DỤNG HÀM ĐỔI TÊN VÀO ĐÂY
           title: Text(_getScreenTitle()),
           backgroundColor: const Color(0xFF2C3E50),
           actions: [
@@ -75,7 +87,6 @@ class GameScreen extends StatelessWidget {
   Widget _buildPlayerHeader(PieceColor color, GameViewModel viewModel) {
     bool isCurrentTurn = viewModel.currentTurn == color && viewModel.winner == null;
     
-    // Tên người chơi cũng đã được đổi linh hoạt theo chế độ
     String playerName;
     if (viewModel.mode == 'friend') {
       playerName = color == PieceColor.white ? 'Người chơi 1 (Trắng)' : 'Người chơi 2 (Đen)';
@@ -133,12 +144,15 @@ class GameScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Wrap(
               spacing: 4,
+              // --- ÁP DỤNG ICON CHO KHU VỰC QUÂN BỊ BẮT KHI ĂN QUÂN ---
               children: capturedPieces.map((p) => Text(
-                p.displayName, 
+                _getPieceIcon(p), 
                 style: TextStyle(
-                  color: p.color == PieceColor.white ? Colors.white70 : Colors.grey, 
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold
+                  color: p.color == PieceColor.white ? Colors.white : Colors.black, 
+                  fontSize: 24, // Cỡ vừa phải cho khu vực hiển thị
+                  shadows: [
+                    Shadow(color: p.color == PieceColor.white ? Colors.black54 : Colors.white54, offset: const Offset(1, 1), blurRadius: 1),
+                  ]
                 )
               )).toList(),
             ),
@@ -161,8 +175,10 @@ class GameScreen extends StatelessWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 8),
           itemCount: 64,
           itemBuilder: (context, index) {
-            int row = index ~/ 8;
-            int col = index % 8;
+            bool isPlayerWhite = viewModel.playerColor == PieceColor.white;
+            int row = isPlayerWhite ? index ~/ 8 : 7 - (index ~/ 8);
+            int col = isPlayerWhite ? index % 8 : 7 - (index % 8);
+            
             bool isWhiteSquare = (row + col) % 2 == 0;
             bool isSelected = viewModel.selectedPosition == Position(row, col);
             
@@ -192,25 +208,24 @@ class GameScreen extends StatelessWidget {
     );
   }
 
+  // --- ĐÃ LÀM LẠI HÀM NÀY: Bỏ vòng tròn mờ, dùng Icon với font chữ to ---
   Widget _buildPieceDisplay(Piece piece) {
     bool isWhite = piece.color == PieceColor.white;
     
-    return Container(
-      padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
-        color: isWhite ? Colors.black.withAlpha(20) : Colors.white.withAlpha(30),
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        piece.displayName, 
-        style: TextStyle(
-          fontSize: 22, 
-          fontWeight: FontWeight.bold,
-          color: isWhite ? Colors.white : Colors.black,
-          shadows: [
-            Shadow(color: isWhite ? Colors.black54 : Colors.white54, offset: const Offset(1, 1), blurRadius: 1),
-          ],
-        ),
+    return Text(
+      _getPieceIcon(piece), 
+      style: TextStyle(
+        fontSize: 42, // Kích thước siêu to để lắp vừa ô cờ
+        color: isWhite ? Colors.white : Colors.black,
+        height: 1.0, // Đảm bảo icon không bị lệch chiều dọc
+        shadows: [
+          // Đổ bóng sắc nét để quân Trắng không bị chìm vào ô Trắng, Đen không chìm vào ô Đen
+          Shadow(
+            color: isWhite ? Colors.black87 : Colors.white54, 
+            offset: const Offset(0.5, 0.5), 
+            blurRadius: 3
+          ),
+        ],
       ),
     );
   }
