@@ -28,12 +28,12 @@ class GameScreen extends StatelessWidget {
   String _getPieceIcon(Piece piece) {
     // Sử dụng bộ icon đặc (solid) để dễ dàng thay đổi màu sắc Trắng/Đen
     switch (piece.type) {
-      case PieceType.king: return '♚';
-      case PieceType.queen: return '♛';
-      case PieceType.rook: return '♜';
-      case PieceType.bishop: return '♝';
-      case PieceType.knight: return '♞';
-      case PieceType.pawn: return '♟';
+      case PieceType.king: return '♚\uFE0E';//Chống chỉ định tự động chuyển thành emoji
+      case PieceType.queen: return '♛\uFE0E';
+      case PieceType.rook: return '♜\uFE0E';
+      case PieceType.bishop: return '♝\uFE0E';
+      case PieceType.knight: return '♞\uFE0E';
+      case PieceType.pawn: return '♟\uFE0E';
     }
   }
 
@@ -217,6 +217,8 @@ class GameScreen extends StatelessWidget {
       style: TextStyle(
         fontSize: 42, // Kích thước siêu to để lắp vừa ô cờ
         color: isWhite ? Colors.white : Colors.black,
+        fontFamily: 'Segoe UI Symbol', // Font có hỗ trợ đầy đủ các ký tự cờ
+        fontFamilyFallback:const ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'], // Dự phòng cho các nền tảng khác
         height: 1.0, // Đảm bảo icon không bị lệch chiều dọc
         shadows: [
           // Đổ bóng sắc nét để quân Trắng không bị chìm vào ô Trắng, Đen không chìm vào ô Đen
