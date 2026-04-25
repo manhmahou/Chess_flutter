@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/user_database.dart';
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -8,6 +10,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final UserDatabase _userDatabase = UserDatabase();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -23,7 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _register() {
+  Future<void> _register() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -43,9 +46,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đăng ký tài khoản $username thành công')), 
+    final created = await _userDatabase.createUser(
+      email: email,
+      username: username,
+      password: password,
     );
+
+    if (!mounted) return;
+
+    if (!created) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email hoặc tên người dùng đã tồn tại')),
+      );
+      return;
+    }
+
+    Navigator.pop(context, username);
   }
 
   @override

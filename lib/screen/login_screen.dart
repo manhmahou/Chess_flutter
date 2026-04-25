@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../data/user_database.dart';
+import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -9,6 +12,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final UserDatabase _userDatabase = UserDatabase();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   
@@ -50,10 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = false;
     });
 
-    // 4. Kiểm tra tài khoản (Test với tài khoản cứng)
-    if (username == 'admin' && password == '123456') {
+    // 4. Kiểm tra tài khoản từ database user
+    final account = await _userDatabase.authenticate(
+      username: username,
+      password: password,
+    );
+
+    if (!mounted) return;
+
+    if (account != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đăng nhập thành công! Chào mừng $username.')),
+        SnackBar(content: Text('Đăng nhập thành công! Chào mừng ${account.username}.')),
       );
       // Trả về true để HomePage nhận biết đăng nhập thành công
       Navigator.pop(context, true);
@@ -61,23 +72,31 @@ class _LoginScreenState extends State<LoginScreen> {
       // Thông báo sai thông tin
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Tên đăng nhập hoặc mật khẩu không đúng! (Thử: admin / 123456)'),
+          content: Text('Tên đăng nhập hoặc mật khẩu không đúng!'),
           backgroundColor: Colors.redAccent,
         ),
       );
     }
   }
 
-  void _register() {
-    Navigator.push(
+  Future<void> _register() async {
+    final result = await Navigator.push<String?>(
       context,
       MaterialPageRoute(builder: (context) => const RegisterScreen()),
     );
+
+    if (!mounted) return;
+    if (result != null && result.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đăng ký tài khoản $result thành công. Vui lòng đăng nhập.')),
+      );
+    }
   }
 
   void _forgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Chuyển đến quên mật khẩu')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
     );
   }
 
